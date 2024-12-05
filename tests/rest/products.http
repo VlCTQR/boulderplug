@@ -1,0 +1,520 @@
+### GET request for all products
+GET {{protocol}}{{host}}:{{port}}/products
+Content-Type: application/json
+Accept: application/json
+
+> {%
+    client.test("Get all products", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        console.log(response.body);
+    });
+%}
+
+### GET request for filtered products
+GET {{protocol}}{{host}}:{{port}}/products?brand=Scarpa
+Content-Type: application/json
+Accept: application/json
+
+> {%
+    client.test("Get filtered products", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        console.log(response.body);
+    });
+%}
+
+### GET request for filtered products
+GET {{protocol}}{{host}}:{{port}}/products?brand=Scarpa,Mad%20Rock&level=Intermediate
+Content-Type: application/json
+Accept: application/json
+
+> {%
+    client.test("Get filtered products", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        console.log(response.body);
+    });
+%}
+
+### GET request for filtered products
+GET {{protocol}}{{host}}:{{port}}/products?colors=blue,orange
+Content-Type: application/json
+Accept: application/json
+
+> {%
+    client.test("Get filtered products", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        console.log(response.body);
+    });
+%}
+
+### GET request for searched products with search query 'shoe'
+GET {{protocol}}{{host}}:{{port}}/products?search=shoe
+Content-Type: application/json
+Accept: application/json
+
+> {%
+    client.test("Get searched products, returns list of products with 'shoe' in the description", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        console.log(response.body);
+    });
+%}
+
+### GET request for searched products with search query 'scarpa'
+GET {{protocol}}{{host}}:{{port}}/products?search=scarpa
+Content-Type: application/json
+Accept: application/json
+
+> {%
+    client.test("Get searched products, returns list of products with 'scarpa' in the name, description or brand", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        console.log(response.body);
+    });
+%}
+
+### GET request for product by id
+GET {{protocol}}{{host}}:{{port}}/products/1
+Content-Type: application/json
+Accept: application/json
+
+> {%
+    client.test("Get product by id", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        console.log(response.body);
+    });
+%}
+
+### GET request for product by id but product does not exist
+GET {{protocol}}{{host}}:{{port}}/products/100
+Content-Type: application/json
+Accept: application/json
+
+> {%
+    client.test("Product not found", function () {
+        client.assert(response.status === 404, "Response status is not 404");
+        client.assert(response.body.message === "Product not found", "Response message is not 'Product not found'");
+        console.log(response.body);
+    });
+%}
+
+### GET reqeust for filteroptions
+GET {{protocol}}{{host}}:{{port}}/products/options
+Content-Type: application/json
+Accept: application/json
+
+> {%
+    client.test("Get filter options", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        console.log(response.body);
+    });
+%}
+
+### POST request to get normal user authorization token
+POST {{protocol}}{{host}}:{{port}}/auth/sessions
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "jan@gmail.com",
+  "password": "UserJan1!"
+}
+
+> {%
+    client.test("Sign in successful", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body.token.length > 0, "Response token is empty");
+        console.log(response.body.token);
+        client.global.set("userToken", response.body.token);
+    })
+%}
+
+### POST request to get admin user authorization token
+POST {{protocol}}{{host}}:{{port}}/auth/sessions
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "henk@gmail.com",
+  "password": "AdminPlug1!"
+}
+
+> {%
+    client.test("Sign in successful", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body.token.length > 0, "Response token is empty");
+        console.log(response.body.token);
+        client.global.set("adminToken", response.body.token);
+    })
+%}
+
+### POST request for new bid on product
+POST {{protocol}}{{host}}:{{port}}/products/2/bids
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+Accept: application/json
+
+{
+  "bid": 200
+}
+
+> {%
+    client.test("Post bid with normal user token", function () {
+        client.assert(response.status === 201, "Response status is not 201");
+        console.log(response.body);
+    });
+%}
+
+### POST new bid on product with normal user token but bid is lower than current bid
+POST {{protocol}}{{host}}:{{port}}/products/2/bids
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+Accept: application/json
+
+{
+  "bid": 10
+}
+
+> {%
+    client.test("Post bid with normal user token but bid is lower than current bid", function () {
+        client.assert(response.status === 400, "Response status is not 400");
+        client.assert(response.body.message === "Bid must be higher than current bid", "Error message does not match");
+        console.log(response.body);
+    });
+%}
+
+### POST new bid on product with normal user token but bidding closed
+POST {{protocol}}{{host}}:{{port}}/products/1/bids
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+Accept: application/json
+
+{
+  "bid": 200
+}
+
+> {%
+    client.test("Post bid with normal user token but bidding closed", function () {
+        client.assert(response.status === 400, "Response status is not 400");
+        client.assert(response.body.message === "Bidding is closed", "Error message does not match");
+        console.log(response.body);
+    });
+%}
+
+### POST new bid on product with normal user token but product doesn't exist
+POST {{protocol}}{{host}}:{{port}}/products/0/bids
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+Accept: application/json
+
+{
+  "bid": 200
+}
+
+> {%
+    client.test("Post bid with normal user token but product doesn't exist", function () {
+        client.assert(response.status === 404, "Response status is not 404");
+        client.assert(response.body.message === "Product not found", "Error message does not match");
+        console.log(response.body);
+    });
+%}
+
+### POST new bid on product with normal user token but token is invalid
+POST {{protocol}}{{host}}:{{port}}/products/2/bids
+Content-Type: application/json
+Authorization: Bearer "Balls"
+
+{
+  "bid": 200
+}
+
+> {%
+    client.test("Post bid with normal user token but token is invalid", function () {
+        client.assert(response.status === 400, "Response status is not 403");
+        client.assert(response.body.message === "Token does not contain user and or email", "Error message does not match");
+        console.log(response.body);
+    });
+%}
+
+### POST new bid on product without token
+POST {{protocol}}{{host}}:{{port}}/products/2/bids
+Content-Type: application/json
+
+{
+  "bid": 200
+}
+
+> {%
+    client.test("Post bid without token", function () {
+        client.assert(response.status === 401, "Response status is not 401");
+        client.assert(response.body.message === "Authorization header is missing", "Error message does not match");
+        console.log(response.body);
+    });
+%}
+
+### GET bids from product
+GET {{protocol}}{{host}}:{{port}}/products/2/bids
+Content-Type: application/json
+Accept: application/json
+
+> {%
+    client.test("Get bids from product", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body[0].userName === "Jan", "User name does not match");
+        console.log(response.body);
+    });
+%}
+
+### POST new product with admin token
+POST {{protocol}}{{host}}:{{port}}/products
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+{
+  "name": "New Climbing Shoe",
+  "description": "High-performance shoe for experienced climbers.",
+  "brand": "Scarpa",
+  "level": "Advanced",
+  "closing": "Velcro",
+  "toepatch": true,
+  "colors": ["red", "blue"],
+  "images": [
+    "https://example.com/image1.jpg",
+    "https://example.com/image2.jpg"
+  ],
+  "dateOfSale": "2024-10-01T12:00:00Z"
+}
+
+### POST new product with admin token with a new brand
+POST {{protocol}}{{host}}:{{port}}/products
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+{
+  "name": "New Climbing Shoe",
+  "description": "High-performance shoe for experienced climbers.",
+  "brand": "NewBrand",
+  "level": "Advanced",
+  "closing": "Velcro",
+  "toepatch": true,
+  "colors": ["red", "blue"],
+  "images": [
+    "https://example.com/image1.jpg",
+    "https://example.com/image2.jpg"
+  ],
+  "dateOfSale": "2024-10-01T12:00:00Z"
+}
+
+> {%
+    client.test("Post new product with admin token", function () {
+        client.assert(response.status === 201, "Response status is not 200");
+        console.log(response.body);
+        client.global.set("productId", response.body.id);
+    });
+%}
+
+### POST new product with admin token but fields are missing
+POST {{protocol}}{{host}}:{{port}}/products
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+{
+  "brand": "Scarpa",
+  "level": "Advanced",
+  "closing": "Velcro",
+  "toepatch": true,
+  "colors": ["red", "blue"],
+  "images": [
+    "https://example.com/image1.jpg",
+    "https://example.com/image2.jpg"
+  ],
+  "dateOfSale": "2024-10-01T12:00:00Z"
+}
+
+> {%
+    client.test("Post new product with admin token but fields are missing", function () {
+        client.assert(response.status === 400, "Response status is not 400");
+        client.assert(response.body.message === "Missing required fields", "Error message does not match");
+        console.log(response.body);
+    });
+%}
+
+### POST new product with admin token but fields are invalid
+POST {{protocol}}{{host}}:{{port}}/products
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+{
+  "name": "New Climbing Shoe",
+  "description": "High-performance shoe for experienced climbers.",
+  "brand": "Scarpa",
+  "level": true,
+  "closing": "Velcro",
+  "toepatch": true,
+  "colors": ["red", "blue"],
+  "images": "https://example.com/image1.jpg",
+  "dateOfSale": "2024-10-01T12:00:00Z"
+}
+
+> {%
+    client.test("Post new product with admin token but fields are invalid", function () {
+        client.assert(response.status === 400, "Response status is not 400");
+        client.assert(response.body.message === "Invalid data types given", "Error message does not match");
+        console.log(response.body);
+    });
+%}
+
+### POST new product with admin token but invalid dateOfSale
+POST {{protocol}}{{host}}:{{port}}/products
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+{
+  "name": "New Climbing Shoe",
+  "description": "High-performance shoe for experienced climbers.",
+  "brand": "Scarpa",
+  "level": "Advanced",
+  "closing": "Velcro",
+  "toepatch": true,
+  "colors": ["red", "blue"],
+  "images": [
+    "https://example.com/image1.jpg",
+    "https://example.com/image2.jpg"
+  ],
+  "dateOfSale": "202-10-01T12:00:00Z"
+}
+
+> {%
+    client.test("Post new product with admin token but invalid dateOfSale", function () {
+        client.assert(response.status === 400, "Response status is not 400");
+        client.assert(response.body.message === "Invalid dateOfSale", "Error message does not match");
+        console.log(response.body);
+    });
+%}
+
+### POST new product with normal user token
+POST {{protocol}}{{host}}:{{port}}/products
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+Accept: application/json
+
+{
+  "name": "New Climbing Shoe",
+  "description": "High-performance shoe for experienced climbers.",
+  "brand": "Scarpa",
+  "level": "Advanced",
+  "closing": "Velcro",
+  "toepatch": true,
+  "colors": ["red", "blue"],
+  "images": [
+    "https://example.com/image1.jpg",
+    "https://example.com/image2.jpg"
+  ],
+  "dateOfSale": "2024-10-01T12:00:00Z"
+}
+
+> {%
+    client.test("Post new product with normal user token", function () {
+        client.assert(response.status === 401, "Response status is not 403");
+        client.assert(response.body.message === "Unauthorized", "Error message does not match");
+        console.log(response.body);
+    });
+%}
+
+### DELETE product with admin token
+DELETE {{protocol}}{{host}}:{{port}}/products/{{productId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+> {%
+    client.test("Delete product with admin token", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        console.log(response.body);
+    });
+%}
+
+### DELETE product with normal user token
+DELETE {{protocol}}{{host}}:{{port}}/products/{{productId}}
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+Accept: application/json
+
+> {%
+    client.test("Delete product with normal user token", function () {
+        client.assert(response.status === 401, "Response status is not 403");
+        client.assert(response.body.message === "Unauthorized", "Error message does not match");
+        console.log(response.body);
+    });
+%}
+
+### DELETE product that does not exist
+DELETE {{protocol}}{{host}}:{{port}}/products/{{productId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+> {%
+    client.assert(response.status === 404, "Response status is not 404");
+    client.assert(response.body.message === "Product not found", "Response message is not 'Product not found'");
+    console.log(response.body);
+%}
+
+### PUT(update) product with admin token
+PUT {{protocol}}{{host}}:{{port}}/products/1
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+{
+  "name": "Test",
+  "description": "High-performance shoe for experienced climbers.",
+  "brand": "Scarpa",
+  "level": "Advanced",
+  "closing": "Velcro",
+  "toepatch": true,
+  "colors": ["red", "blue"],
+  "images": [
+    "https://example.com/image1.jpg",
+    "https://example.com/image2.jpg"
+  ],
+  "dateOfSale": "2024-10-01T12:00:00Z"
+}
+
+> {%
+    client.test("Update product with admin token", function () {
+        client.assert(response.status === 201, "Response status is not 200");
+        console.log(response.body);
+    });
+%}
+
+### PUT(update) product with user token
+PUT {{protocol}}{{host}}:{{port}}/products/1
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+Accept: application/json
+
+{
+  "name": "Test",
+  "description": "High-performance shoe for experienced climbers.",
+  "brand": "Scarpa",
+  "level": "Advanced",
+  "closing": "Velcro",
+  "toepatch": true,
+  "colors": ["red", "blue"],
+  "images": [
+    "https://example.com/image1.jpg",
+    "https://example.com/image2.jpg"
+  ],
+  "dateOfSale": "2024-10-01T12:00:00Z"
+}
+
+> {%
+    client.test("Delete product with normal user token", function () {
+        client.assert(response.status === 401, "Response status is not 403");
+        client.assert(response.body.message === "Unauthorized", "Error message does not match");
+        console.log(response.body);
+    });
+%}

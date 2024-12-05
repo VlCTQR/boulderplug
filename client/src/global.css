@@ -1,0 +1,107 @@
+:root {
+	--primary-color: #8d8d8d;
+	--primary-color-hover: #acacac;
+	--text-color: black;
+	--background-color: white;
+	--background-gradient: linear-gradient(180deg, #d5d5d5, #b8b8b8);
+	--box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+	--border-color: #8d8d8d;
+	--border-radius: 1rem;
+	--disabled-color: #ff9999;
+	--enabled-color: #4CAF50;
+	--disabled-color-hover: #ff3838;
+	--disabled-button-color: #999;
+	--active-button-bg: #007cae;
+	--active-button-bg-hover: #119ed8;
+	--focus-border-color: #666;
+}
+
+
+html, body {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+body {
+	color: #333;
+	margin: 0;
+	/*padding: 8px;*/
+	box-sizing: border-box;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+a {
+	color: rgb(0,100,200);
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:visited {
+	color: rgb(0,80,160);
+}
+
+label {
+	display: block;
+}
+
+input, button, select, textarea {
+	font-family: inherit;
+	font-size: inherit;
+	-webkit-padding: 0.4em 0;
+	padding: 0.4em;
+	margin: 0 0 0.5em 0;
+	box-sizing: border-box;
+	border: 1px solid #ccc;
+	border-radius: 2px;
+}
+
+input:disabled {
+	color: #ccc;
+}
+
+button {
+	border: 2px solid var(--primary-color);
+	border-radius: var(--border-radius);
+	background-color: var(--background-color);
+	outline: none;
+}
+
+button:hover {
+	border: 2px solid var(--primary-color-hover);
+	background-color: var(--primary-color-hover);
+	outline: none;
+}
+
+button:disabled {
+	color: #999;
+}
+
+button:not(:disabled):active {
+	background-color: #ddd;
+}
+
+button:focus {
+	border-color: #666;
+}
+
+:global(.main::-webkit-scrollbar) {
+	width: 8px;
+}
+
+:global(.main::-webkit-scrollbar-track) {
+	background: transparent;;
+}
+
+:global(.main::-webkit-scrollbar-thumb) {
+	background-color: var(--border-color);
+	border-radius: 10px;
+}
+
+:global(.main){
+	scrollbar-color: var(--border-color) transparent;
+	scrollbar-width: thin;
+}

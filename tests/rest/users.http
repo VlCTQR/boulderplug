@@ -1,0 +1,167 @@
+### GET request to get user by id
+GET {{protocol}}{{host}}:{{port}}/users/1
+Content-Type: application/json
+Accept: application/json
+
+> {%
+    client.test("Get user by id", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body.id === 1, "Response id is not 1");
+        client.assert(response.body.name === "Henk", "Response name is not John");
+        console.log(response.body);
+    });
+%}
+
+### GET request to get user by id but user does not exist
+GET {{protocol}}{{host}}:{{port}}/users/100
+Content-Type: application/json
+Accept: application/json
+
+> {%
+    client.test("User not found", function () {
+        client.assert(response.status === 404, "Response status is not 404");
+        client.assert(response.body.message === "User not found", "Response message is not 'User not found'");
+        console.log(response.body);
+    });
+%}
+
+### POST request to register a new user
+POST {{protocol}}{{host}}:{{port}}/users
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "John",
+  "email": "john.doe@example1.com",
+  "password": "StrongPass123!"
+}
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 201, "Response status is not 201");
+        client.assert(response.body.token.length > 0, "Response token is empty");
+        console.log(response.body.token);
+        client.global.set("token", response.body.token);
+    })
+%}
+
+### POST request to register a new user with missing fields
+POST {{protocol}}{{host}}:{{port}}/users
+Content-Type: application/json
+
+{
+  "name": "",
+  "email": "john.doe@example2.com",
+  "password": "StrongPass123!"
+}
+
+> {%
+    client.test("Request executed successfully", function () {
+        // Check if the response status is 400
+        client.assert(response.status === 400, "Response status is not 400");
+
+        // Check if the response body has an error field
+        client.assert(response.body.message !== undefined, "Message field is missing in the response body");
+
+        // Check if the error message matches the expected text
+        client.assert(response.body.message === "Name must be at least 2 characters, only letters", "Error message does not match the expected text");
+
+        console.log(response.body);
+    });
+%}
+
+### POST request to register a new user with invalid email format
+POST {{protocol}}{{host}}:{{port}}/users
+Content-Type: application/json
+
+{
+  "name": "John",
+  "email": "invalid-email",
+  "password": "StrongPass123!"
+}
+
+> {%
+    client.test("Invalid email format", function () {
+        client.assert(response.status === 400, "Response status is not 400");
+        client.assert(response.body.message !== undefined, "Message field is missing in the response body");
+        client.assert(response.body.message === "Invalid email format", "Error message does not match the expected text");
+        console.log(response.body);
+    })
+%}
+
+### POST request to register a new user with weak password
+POST {{protocol}}{{host}}:{{port}}/users
+Content-Type: application/json
+
+{
+  "name": "John",
+  "email": "john.doe@example.com",
+  "password": "weak"
+}
+
+> {%
+    client.test("Weak password", function () {
+        client.assert(response.status === 400, "Response status is not 400");
+        client.assert(response.body.message !== undefined, "Message field is missing in the response body");
+        client.assert(response.body.message === "Password must be at least 8 characters, contain one uppercase letter and one special character.", "Error message does not match the expected text");
+        console.log(response.body);
+    })
+%}
+
+### PUT request to update user's name
+PUT {{protocol}}{{host}}:{{port}}/users/
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "NewName"
+}
+
+> {%
+    client.test("Changed name of user", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body.user.name === "NewName", "Response name is not 'New Name'");
+        console.log(response.body);
+        client.global.set("token", response.body.token);
+    })
+%}
+
+### PUT request to update user's email not following regexp
+PUT {{protocol}}{{host}}:{{port}}/users/
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "email": "balls"
+}
+
+> {%
+    client.test("Failed changing email", function () {
+        client.assert(response.status === 400, "Response status is not 400");
+        client.assert(response.body.message === "Invalid email format", "Error is not 'Invalid email format'");
+        console.log(response.body);
+    })
+%}
+
+### PUT request to update user info
+PUT {{protocol}}{{host}}:{{port}}/users/
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "NewName",
+  "email": "john.doe@example.com"
+}
+
+> {%
+    client.test("Changed name and email of user", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body.user.name === "NewName", "Response name is not 'New Name'");
+        console.log(response.body);
+        client.global.set("token", response.body.token);
+    })
+%}
+

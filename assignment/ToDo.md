@@ -1,0 +1,12 @@
+# TO DO
+- ~~Admin can delete products~~
+- ~~Admin can edit products~~
+- ~~Admin can add products~~
+- ~~Users can search for products based on title and description~~
+- ~~Tests for search~~
+- ~~Appropriate error messages (Placing bid when not signed in)~~
+- Create a test plan and test report (NF11) [functional-design.md](./functional-design.md)
+- Remove unnecessary comments and console logs
+- ~~Add more products to the server~~
+- Add tags to product(brand, level, closing, toepatch)
+- Clean-up code and remove duplicate code

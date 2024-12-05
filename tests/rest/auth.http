@@ -1,0 +1,102 @@
+### POST request to sign in with correct credentials
+POST {{protocol}}{{host}}:{{port}}/auth/sessions
+Content-Type: application/json
+
+{
+  "email": "jan@gmail.com",
+  "password": "UserJan1!"
+}
+
+> {%
+    client.test("Sign in successful", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body.token.length > 0, "Response token is empty");
+        console.log(response.body.token);
+        client.global.set("token", response.body.token);
+    })
+%}
+
+### POST request to sign in with incorrect email
+POST {{protocol}}{{host}}:{{port}}/auth/sessions
+Content-Type: application/json
+
+{
+  "email": "ban@gmail.com",
+  "password": "UserJan1!"
+}
+
+> {%
+    client.test("Sign in with incorrect email", function () {
+        client.assert(response.status === 401, "Response status is not 401");
+        client.assert(response.body.message === "Invalid credentials", "Error message does not match the expected text");
+        console.log(response.body);
+    })
+%}
+
+### POST request to sign in with incorrect password
+POST {{protocol}}{{host}}:{{port}}/auth/sessions
+Content-Type: application/json
+
+{
+  "email": "jan@gmail.com",
+  "password": "UserBan1!"
+}
+
+> {%
+    client.test("Sign in with incorrect password", function () {
+        client.assert(response.status === 401, "Response status is not 401");
+        client.assert(response.body.message === "Invalid credentials", "Error message does not match the expected text");
+        console.log(response.body);
+    })
+%}
+
+### POST request to sign in with empty credentials
+POST {{protocol}}{{host}}:{{port}}/auth/sessions
+Content-Type: application/json
+
+> {%
+    client.test("Sign in with empty credentials", function () {
+        client.assert(response.status === 401, "Response status is not 401");
+        client.assert(response.body.message === "Invalid credentials", "Error message does not match the expected text");
+        console.log(response.body);
+    })
+%}
+
+### DELETE request to log out (valid token)
+DELETE {{protocol}}{{host}}:{{port}}/auth/sessions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+> {%
+    client.test("Log out successful", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body.message === "Logout successful, token invalidated", "Success message does not match");
+        console.log(response.body);
+    });
+%}
+
+### DELETE request to log out (no token provided)
+DELETE {{protocol}}{{host}}:{{port}}/auth/sessions
+Content-Type: application/json
+
+> {%
+    client.test("Log out without token", function () {
+        client.assert(response.status === 401, "Response status is not 401");
+        client.assert(response.body.message === "Authorization header is missing", "Error message does not match");
+        console.log(response.body);
+    });
+%}
+
+### DELETE request to log out (invalid token)
+DELETE {{protocol}}{{host}}:{{port}}/auth/sessions
+Content-Type: application/json
+Authorization: Bearer invalid_token
+
+> {%
+    client.test("Log out with invalid token", function () {
+        client.assert(response.status === 400, "Response status is not 400");
+        client.assert(response.body.message === "Token does not contain user and or email", "Error message does not match");
+        console.log(response.body);
+    });
+%}
+
